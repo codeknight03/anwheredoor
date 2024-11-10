@@ -1,0 +1,6 @@
+listenPort: 8080
+http:
+  - host: "localhost"
+    port: 3000
+    backend: localhost
+    path: "" 
