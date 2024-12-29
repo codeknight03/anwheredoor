@@ -1,6 +1,6 @@
 package config
 
-type reverseproxyConfig struct {
+type ReverseproxyConfig struct {
 	ListenPort  string   `yaml:"listenPort,omitempty"`
 	HttpsRoutes []*Route `yaml:"https,omitempty"`
 	HttpRoutes  []*Route `yaml:"http,omitempty"`
