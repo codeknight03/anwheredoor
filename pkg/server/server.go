@@ -16,7 +16,7 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 	routes := make(map[string]http.Handler)
 
 	for _, route := range config.HttpRoutes {
-		backendUrl, err := url.Parse("http://" + route.Backend + ":" + string(route.Port))
+		backendUrl, err := url.Parse("http://" + route.Backend + ":" + fmt.Sprint(route.Port))
 		if err != nil {
 			fmt.Printf("Dropping %v because due to malformed url.", route)
 		}
@@ -30,7 +30,7 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 	//TODO: Move HTTP and HTTPS routes together when SSL termination is implemented
 
 	for _, route := range config.HttpsRoutes {
-		backendUrl, err := url.Parse("https://" + route.Backend + ":" + string(route.Port))
+		backendUrl, err := url.Parse("https://" + route.Backend + ":" + fmt.Sprint(route.Port))
 		if err != nil {
 			fmt.Printf("Dropping %v because due to malformed url.", route)
 		}

@@ -6,9 +6,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func RpConfigFromBytes(b []byte) (*reverseproxyConfig, error) {
+func RpConfigFromBytes(b []byte) (*ReverseproxyConfig, error) {
 
-	cfg := &reverseproxyConfig{}
+	cfg := &ReverseproxyConfig{}
 
 	err := yaml.UnmarshalStrict(b, cfg)
 	if err != nil {
