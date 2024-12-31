@@ -26,6 +26,7 @@ func main() {
 
 	log.Printf("Starting reverse proxy on port %s...", rpcfg.ListenPort)
 	if err := http.ListenAndServe(":"+rpcfg.ListenPort, proxy); err != nil {
+		log.Printf("Last config parsed: %v", rpcfg)
 		log.Fatalf("Error starting server: %v", err)
 	}
 
