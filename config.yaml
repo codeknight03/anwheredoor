@@ -3,12 +3,12 @@ http:
   - host: "localhost:8080"
     port: 9001
     backend: localhost
-    path: "/*"
+    pathPrefix: "/"
   - host: "localhost:8080"
     port: 9002
     backend: localhost
-    path: "/second" 
+    pathPrefix: "/second" 
   - host: "localhost:8080"
     port: 9003
     backend: localhost
-    path: "/third" 
+    pathPrefix: "/third" 

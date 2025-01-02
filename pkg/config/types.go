@@ -9,6 +9,6 @@ type ReverseproxyConfig struct {
 type Route struct {
 	Host    string `yaml:"host"`
 	Backend string `yaml:"backend"`
-	Path    string `yaml:"path"`
+	Path    string `yaml:"pathPrefix"`
 	Port    int    `yaml:"port"`
 }
