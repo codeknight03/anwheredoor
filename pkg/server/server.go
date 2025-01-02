@@ -13,6 +13,13 @@ type ReverseProxy struct {
 }
 
 func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
+
+	// Rationale: The grouping of routes needs to be done based on the Host
+	//            so that eventually we can design an efficient way to run
+	//            more than one listener per Host.
+	// Decision:  Map from Host to path and traverse paths in the order of
+	//            their length to prefer the most specific path.
+
 	routes := make(map[string]http.Handler)
 
 	for _, route := range config.HttpRoutes {
@@ -46,6 +53,8 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler, ok := rp.routes[r.Host+r.URL.Path]
 	if !ok {
+		fmt.Printf("Host and Path Combination not found %s:%s", r.Host, r.URL.Path)
+		fmt.Printf("Routes: %v", rp.routes)
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}

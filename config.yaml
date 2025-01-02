@@ -1,14 +1,14 @@
 listenPort: 8080
 http:
-  - host: "rpchost"
+  - host: "localhost:8080"
     port: 9001
     backend: localhost
-    path: ""
-  - host: "rpchost"
+    path: "/*"
+  - host: "localhost:8080"
     port: 9002
     backend: localhost
-    path: "" 
-  - host: "rpchost"
+    path: "/second" 
+  - host: "localhost:8080"
     port: 9003
     backend: localhost
-    path: "" 
+    path: "/third" 

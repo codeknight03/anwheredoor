@@ -1,14 +1,14 @@
-listenPort: 8080
+listenPort: 80
 http:
-  - host: "localhost"
+  - host: "rptest"
     port: 9001
     backend: localhost
     path: ""
-  - host: "localhost"
+  - host: "rptest"
     port: 9002
     backend: localhost
     path: "" 
-  - host: "localhost"
+  - host: "rptest"
     port: 9003
     backend: localhost
     path: "" 
