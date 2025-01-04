@@ -1,10 +1,11 @@
 package server
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+
+	"log/slog"
 )
 
 type BackendHandler struct {
@@ -15,7 +16,7 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	req, err := http.NewRequest(r.Method, bh.Target.String(), r.Body)
 	if err != nil {
-		fmt.Printf("Error creating request for %s: %s", bh.Target, err)
+		slog.Debug("Error creating request.", "target", bh.Target, "error", err)
 		http.Error(w, "Error creating request", http.StatusInternalServerError)
 		return
 	}
@@ -29,7 +30,7 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("Error in the response for %s:%s", bh.Target, err)
+		slog.Debug("Error in the response.", "target", bh.Target, "error", err)
 		http.Error(w, "Error forwarding the request", http.StatusBadGateway)
 	}
 
@@ -37,8 +38,8 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//TODO: Look into this wasted conversion into bytes for writing to a stream again.
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error reading the response for %s: %s\n", bh.Target, err)
-		http.Error(w, "Error reading the response body", http.StatusInternalServerError)
+		slog.Debug("Error reading the response", "target", bh.Target, "error", err)
+		http.Error(w, "Error reading the response body", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
@@ -56,7 +57,8 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Write the body
 	_, writeErr := w.Write(body)
 	if writeErr != nil {
-		fmt.Printf("Error writing the response body for %s: %s\n", bh.Target, writeErr)
+		slog.Debug("Error writing the response body.", "target", bh.Target, "error", writeErr)
+		http.Error(w, "Error writing the response body", http.StatusBadGateway)
 	}
 
 }

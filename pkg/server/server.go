@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,8 +19,7 @@ type pathHandlerPair struct {
 	handler http.Handler
 }
 
-func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
-
+func makeRoutesFromConfig(config *config.ReverseproxyConfig) map[string][]pathHandlerPair {
 	// Rationale: The grouping of routes needs to be done based on the Host
 	//            so that eventually we can design an efficient way to run
 	//            more than one listener per Host.
@@ -27,11 +27,10 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 	//            their length to prefer the most specific path.
 
 	routes := make(map[string][]pathHandlerPair)
-
 	for _, route := range config.HttpRoutes {
 		backendUrl, err := url.Parse("http://" + route.Backend + ":" + fmt.Sprint(route.Port))
 		if err != nil {
-			fmt.Printf("Dropping %v because due to malformed url.", route)
+			slog.Warn("Dropping route because due to malformed url.", "route", route, "error", err)
 		}
 
 		routes[route.Host] = addToPathHandlerMap(routes[route.Host], route.Path, &BackendHandler{
@@ -45,7 +44,7 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 	for _, route := range config.HttpsRoutes {
 		backendUrl, err := url.Parse("https://" + route.Backend + ":" + fmt.Sprint(route.Port))
 		if err != nil {
-			fmt.Printf("Dropping %v because due to malformed url.", route)
+			slog.Warn("Dropping route because due to malformed url.", "route", route, "error", err)
 		}
 
 		routes[route.Host] = addToPathHandlerMap(routes[route.Host], route.Path, &BackendHandler{
@@ -53,13 +52,26 @@ func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 		})
 	}
 
+	return routes
+}
+func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
+
+	routes := makeRoutesFromConfig(config)
+
 	return &ReverseProxy{routes: routes}
+}
+
+func (rp *ReverseProxy) UpdateConfig(config *config.ReverseproxyConfig) *ReverseProxy {
+
+	rp.routes = makeRoutesFromConfig(config)
+
+	return rp
 }
 
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	pathHandlers, ok := rp.routes[r.Host]
 	if !ok {
-		fmt.Printf("Host Not Found :%s", r.Host)
+		slog.Debug("Host Not Found", "host", r.Host)
 		http.Error(w, "Not Found", http.StatusNotFound)
 	}
 
@@ -72,7 +84,7 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if handler == nil {
-		fmt.Printf("Host and Path Combination not found %s:%s", r.Host, r.URL.Path)
+		slog.Debug("Host and Path Combination not found", "host", r.Host, "path", r.URL.Path)
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
