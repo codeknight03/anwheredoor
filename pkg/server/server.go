@@ -73,6 +73,7 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		slog.Debug("Host Not Found", "host", r.Host)
 		http.Error(w, "Not Found", http.StatusNotFound)
+		return
 	}
 
 	var handler http.Handler

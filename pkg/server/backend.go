@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
 	"log/slog"
 )
 
@@ -32,6 +31,7 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.Debug("Error in the response.", "target", bh.Target, "error", err)
 		http.Error(w, "Error forwarding the request", http.StatusBadGateway)
+		return
 	}
 
 	//must convert to bytes before sending
@@ -59,6 +59,7 @@ func (bh *BackendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if writeErr != nil {
 		slog.Debug("Error writing the response body.", "target", bh.Target, "error", writeErr)
 		http.Error(w, "Error writing the response body", http.StatusBadGateway)
+		return
 	}
 
 }
