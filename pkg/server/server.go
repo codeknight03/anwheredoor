@@ -15,8 +15,9 @@ type ReverseProxy struct {
 }
 
 type pathHandlerPair struct {
-	path    string
-	handler http.Handler
+	path       string
+	handler    http.Handler
+	requireTLS bool
 }
 
 func makeRoutesFromConfig(config *config.ReverseproxyConfig) map[string][]pathHandlerPair {
@@ -27,33 +28,32 @@ func makeRoutesFromConfig(config *config.ReverseproxyConfig) map[string][]pathHa
 	//            their length to prefer the most specific path.
 
 	routes := make(map[string][]pathHandlerPair)
-	for _, route := range config.HttpRoutes {
+	for _, route := range config.Routes {
 		backendUrl, err := url.Parse("http://" + route.Backend + ":" + fmt.Sprint(route.Port))
 		if err != nil {
 			slog.Warn("Dropping route because due to malformed url.", "route", route, "error", err)
 		}
 
-		routes[route.Host] = addToPathHandlerMap(routes[route.Host], route.Path, &BackendHandler{
+		handler := &BackendHandler{
 			Target: backendUrl,
-		})
-	}
-
-	//handle https routes separately until ssl termination is implemented
-	//TODO: Move HTTP and HTTPS routes together when SSL termination is implemented
-
-	for _, route := range config.HttpsRoutes {
-		backendUrl, err := url.Parse("https://" + route.Backend + ":" + fmt.Sprint(route.Port))
-		if err != nil {
-			slog.Warn("Dropping route because due to malformed url.", "route", route, "error", err)
 		}
 
-		routes[route.Host] = addToPathHandlerMap(routes[route.Host], route.Path, &BackendHandler{
-			Target: backendUrl,
-		})
+		//for tls enabled routes
+		if route.EnableTLS {
+			if route.EnableHTTPRedirect {
+				wrapWithHTTPSRedirect(handler, route.Host)
+			} else {
+				wrapWithTLSCheck(handler)
+			}
+
+		}
+
+		routes[route.Host] = addToPathHandlerMap(routes[route.Host], route.Path, handler, route.EnableTLS)
 	}
 
 	return routes
 }
+
 func NewReverseProxy(config *config.ReverseproxyConfig) *ReverseProxy {
 
 	routes := makeRoutesFromConfig(config)
