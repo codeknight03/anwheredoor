@@ -22,8 +22,8 @@ type HTTPSRedirectHandler struct {
 
 func (h *HTTPSRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.TLS == nil {
-		target := "https://" + h.host + r.RequestURI
-		http.Redirect(w, r, target, http.StatusTemporaryRedirect)
+		tempTarget := "https://" + h.host + r.RequestURI
+		http.Redirect(w, r, tempTarget, http.StatusTemporaryRedirect)
 		return
 	}
 	h.next.ServeHTTP(w, r)
